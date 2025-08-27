@@ -3,13 +3,11 @@
   "builds": [
     {
       "src": "prototype/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "prototype/dist"
-      }
+      "use": "@vercel/static-build"
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/prototype/$1" }
-  ]
+    { "src": "/(.*)", "dest": "prototype/dist/$1" }
+  ],
+  "outputDirectory": "prototype/dist"
 }
