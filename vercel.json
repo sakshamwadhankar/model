@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "prototype/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "prototype/dist"
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/prototype/$1" }
+  ]
+}
