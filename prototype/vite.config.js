@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(() => {
     return {
         build: {
-            outDir: 'build',
+            // ✅ Vercel को "dist" चाहिए, इसलिए यहाँ बदल दिया
+            outDir: 'dist',
         },
         server: {
             open: true,
