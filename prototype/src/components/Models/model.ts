@@ -18,5 +18,5 @@ export interface ModelProps {
 }
 
 
-export const models = ["Lamborghini Aventador J", "Maserati MC20", "Autobianchi Stellina"] as const;
+export const models = ["ARCHON"] as const;
 export type Model = typeof models[number];
