@@ -214,7 +214,7 @@ export default function App() {
     ctx.drawImage(srcCanvas, 0, 0, width, height)
 
     // Collect details
-    const model = (levaStore.get('Select') as Model) || (models as Model)
+    const model = (levaStore.get('Select') as Model) || (models as unknown as Model)
     const exterior = carsStateRef.current[model].exterior
     const interior = carsStateRef.current[model].interior
     const timestamp = new Date().toLocaleString()
