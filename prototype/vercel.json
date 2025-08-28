@@ -3,15 +3,13 @@
   "version": 2,
   "builds": [
     {
-      "src": "prototype/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
     }
   ],
-  "buildCommand": "cd prototype && npm run build",
-  "outputDirectory": "prototype/dist",
   "rewrites": [
     {
       "source": "/(.*)",
