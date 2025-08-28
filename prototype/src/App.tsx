@@ -119,13 +119,18 @@ function CaptureBridge({
   useEffect(() => {
     onReady({ gl, scene, camera, invalidate })
   }, [gl, scene, camera, invalidate, onReady])
-  return null
+  return <></>
 }
 
 // Component return type bhi React.JSX.Element. [1][2]
 export default function App(): React.JSX.Element {
   const cars: Record<Model, Cars> = useMemo(
     () => ({
+      "": {
+        Model: Lamborghini,
+        interior: '#000000',
+        exterior: '#9a9898',
+      },
       ARCHON: {
         Model: Lamborghini,
         interior: '#000000',
