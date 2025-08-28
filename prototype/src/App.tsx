@@ -1,4 +1,4 @@
-// src/App.tsx
+// App.tsx
 import { Canvas, useThree } from '@react-three/fiber'
 import { Environment, Loader, OrbitControls, useProgress } from '@react-three/drei'
 import Lamborghini from './components/Models/ARCHON'
@@ -9,11 +9,12 @@ import { Model, ModelProps, models } from './components/Models/model'
 // Back URL (from request)
 const BACK_URL = 'https://archon-roadstar-creation.vercel.app/'
 
-// Global styles
+// Return type ko explicitly React.JSX.Element dene se JSX types clean resolve hote hain. [1][2]
 const GlobalStyles = (): React.JSX.Element => (
   <style>{`
     .leva__search { display: none !important; }
 
+    /* Top-left button row */
     .btn-row {
       position: absolute;
       left: 12px;
@@ -23,6 +24,7 @@ const GlobalStyles = (): React.JSX.Element => (
       gap: 10px;
     }
 
+    /* Base button */
     .btn {
       position: relative;
       padding: 8px 12px;
@@ -37,7 +39,7 @@ const GlobalStyles = (): React.JSX.Element => (
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       overflow: hidden;
-      text-decoration: none;
+      text-decoration: none; /* for <a> */
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -46,6 +48,7 @@ const GlobalStyles = (): React.JSX.Element => (
     .btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
     .btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 6px 18px rgba(0,0,0,0.25); }
 
+    /* Aesthetic micro static/noise + soft rotating shine */
     .btn.btn--static::before {
       content: "";
       position: absolute;
@@ -78,6 +81,11 @@ const GlobalStyles = (): React.JSX.Element => (
       100% { transform: rotate(360deg); }
     }
 
+    /* Optional hooks */
+    .save-btn {}
+    .back-btn {}
+
+    /* Minimal caret icon for Back */
     .back-icon {
       width: 10px; height: 10px;
       border-left: 2px solid currentColor;
@@ -88,6 +96,7 @@ const GlobalStyles = (): React.JSX.Element => (
   `}</style>
 )
 
+// JSX.Element → React.JSX.Element; ModelProps same rehta hai. [1][2]
 interface Cars {
   readonly Model: (props: ModelProps) => React.JSX.Element
   readonly interior: string
@@ -95,6 +104,7 @@ interface Cars {
 }
 
 // Expose renderer + invalidate for demand render and capture
+// Return type explicit: React.JSX.Element. [1][2]
 function CaptureBridge({
   onReady,
 }: {
@@ -112,10 +122,15 @@ function CaptureBridge({
   return <></>
 }
 
+// Component return type bhi React.JSX.Element. [1][2]
 export default function App(): React.JSX.Element {
-  // Single source of truth for models/keys
   const cars: Record<Model, Cars> = useMemo(
     () => ({
+      "": {
+        Model: Lamborghini,
+        interior: '#000000',
+        exterior: '#9a9898',
+      },
       ARCHON: {
         Model: Lamborghini,
         interior: '#000000',
@@ -134,11 +149,9 @@ export default function App(): React.JSX.Element {
     carsStateRef.current = carsState
   }, [carsState])
 
-  // Leva controls with default selection
   const [{ Rotation }, setLeva] = useControls(() => ({
     Select: {
       options: models,
-      value: 'ARCHON' as Model, // default selection
       onChange: (value: Model) => {
         setLeva({
           Exterior: carsStateRef.current[value].exterior,
@@ -147,9 +160,9 @@ export default function App(): React.JSX.Element {
       },
     },
     Interior: {
-      value: cars.ARCHON.interior,
+      value: '#000000',
       onChange: (interior: string) => {
-        const model = (levaStore.get('Select') as Model) ?? 'ARCHON'
+        const model = levaStore.get('Select') as Model
         setCarsState({
           ...carsStateRef.current,
           [model]: { ...carsStateRef.current[model], interior },
@@ -157,9 +170,9 @@ export default function App(): React.JSX.Element {
       },
     },
     Exterior: {
-      value: cars.ARCHON.exterior,
+      value: '#9a9898',
       onChange: (exterior: string) => {
-        const model = (levaStore.get('Select') as Model) ?? 'ARCHON'
+        const model = levaStore.get('Select') as Model
         setCarsState({
           ...carsStateRef.current,
           [model]: { ...carsStateRef.current[model], exterior },
@@ -168,7 +181,7 @@ export default function App(): React.JSX.Element {
     },
     Rotation: false,
     'Reset color': button(() => {
-      const model = (levaStore.get('Select') as Model) ?? 'ARCHON'
+      const model = levaStore.get('Select') as Model
       setLeva({
         Exterior: cars[model].exterior,
         Interior: cars[model].interior,
@@ -209,6 +222,7 @@ export default function App(): React.JSX.Element {
   const handleSave = async () => {
     const gl = captureRef.current.gl
     const invalidate = captureRef.current.invalidate
+    // For frameloop="demand", request a render, then wait a couple frames
     if (invalidate) invalidate()
     await waitFrames(2)
 
@@ -238,6 +252,7 @@ export default function App(): React.JSX.Element {
     ctx.drawImage(srcCanvas, 0, 0, width, height)
 
     // Collect details
+    // Yahan pehle models ko Model type me fallback diya gaya tha; safer: agar levaStore empty ho to default pe jao.
     const selectedModel = (levaStore.get('Select') as Model) ?? 'ARCHON'
     const exterior = carsStateRef.current[selectedModel].exterior
     const interior = carsStateRef.current[selectedModel].interior
@@ -324,9 +339,7 @@ export default function App(): React.JSX.Element {
           <CaptureBridge onReady={(api) => { captureRef.current = api }} />
           <Suspense fallback={null}>
             {models.map((name) => {
-              const cfg = cars[name]
-              if (!cfg) return null
-              const ModelComp = cfg.Model
+              const ModelComp = cars[name].Model
               return (
                 <ModelComp
                   key={name}
@@ -349,7 +362,7 @@ export default function App(): React.JSX.Element {
           />
         </Canvas>
 
-        {/* Button row: Back + Save */}
+        {/* Button row: Back + Save (both with static effect) */}
         <div className="btn-row">
           <a
             className="btn btn--static back-btn"
