@@ -1,7 +1,7 @@
 // App.tsx
 import { Canvas, useThree } from '@react-three/fiber'
-import { Environment, Loader, OrbitControls, useProgress } from "@react-three/drei"
-import Lamborghini from "./components/Models/ARCHON"
+import { Environment, Loader, OrbitControls, useProgress } from '@react-three/drei'
+import Lamborghini from './components/Models/ARCHON'
 import { Leva, levaStore, useControls, button } from 'leva'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Model, ModelProps, models } from './components/Models/model'
@@ -9,7 +9,8 @@ import { Model, ModelProps, models } from './components/Models/model'
 // Back URL (from request)
 const BACK_URL = 'https://archon-roadstar-creation.vercel.app/'
 
-const GlobalStyles = () => (
+// Return type ko explicitly React.JSX.Element dene se JSX types clean resolve hote hain. [1][2]
+const GlobalStyles = (): React.JSX.Element => (
   <style>{`
     .leva__search { display: none !important; }
 
@@ -95,36 +96,53 @@ const GlobalStyles = () => (
   `}</style>
 )
 
+// JSX.Element → React.JSX.Element; ModelProps same rehta hai. [1][2]
 interface Cars {
-  readonly Model: (props: ModelProps) => JSX.Element;
-  readonly interior: string;
-  readonly exterior: string;
+  readonly Model: (props: ModelProps) => React.JSX.Element
+  readonly interior: string
+  readonly exterior: string
 }
 
 // Expose renderer + invalidate for demand render and capture
-function CaptureBridge({ onReady }: { onReady: (api: {
-  gl: any, scene: any, camera: any, invalidate: () => void
-}) => void }) {
+// Return type explicit: React.JSX.Element. [1][2]
+function CaptureBridge({
+  onReady,
+}: {
+  onReady: (api: {
+    gl: any
+    scene: any
+    camera: any
+    invalidate: () => void
+  }) => void
+}): React.JSX.Element {
   const { gl, scene, camera, invalidate } = useThree()
-  useEffect(() => { onReady({ gl, scene, camera, invalidate }) }, [gl, scene, camera, invalidate, onReady])
+  useEffect(() => {
+    onReady({ gl, scene, camera, invalidate })
+  }, [gl, scene, camera, invalidate, onReady])
   return null
 }
 
-export default function App() {
-  const cars: Record<Model, Cars> = useMemo(() => ({
-    "ARCHON": {
-      Model: Lamborghini,
-      interior: "#000000",
-      exterior: "#9a9898",
-    },
-  }), [])
+// Component return type bhi React.JSX.Element. [1][2]
+export default function App(): React.JSX.Element {
+  const cars: Record<Model, Cars> = useMemo(
+    () => ({
+      ARCHON: {
+        Model: Lamborghini,
+        interior: '#000000',
+        exterior: '#9a9898',
+      },
+    }),
+    []
+  )
 
   const canvasWrapperRef = useRef<HTMLDivElement | null>(null)
   const controlsRef = useRef<any>(null)
 
   const [carsState, setCarsState] = useState(() => cars)
   const carsStateRef = useRef(carsState)
-  useEffect(() => { carsStateRef.current = carsState }, [carsState])
+  useEffect(() => {
+    carsStateRef.current = carsState
+  }, [carsState])
 
   const [{ Rotation }, setLeva] = useControls(() => ({
     Select: {
@@ -134,25 +152,31 @@ export default function App() {
           Exterior: carsStateRef.current[value].exterior,
           Interior: carsStateRef.current[value].interior,
         })
-      }
+      },
     },
-    Interior: { value: '#000000', onChange: (interior: string) => {
-      const model = levaStore.get("Select") as Model
-      setCarsState({
-        ...carsStateRef.current,
-        [model]: { ...carsStateRef.current[model], interior }
-      })
-    }},
-    Exterior: { value: '#9a9898', onChange: (exterior: string) => {
-      const model = levaStore.get("Select") as Model
-      setCarsState({
-        ...carsStateRef.current,
-        [model]: { ...carsStateRef.current[model], exterior }
-      })
-    }},
+    Interior: {
+      value: '#000000',
+      onChange: (interior: string) => {
+        const model = levaStore.get('Select') as Model
+        setCarsState({
+          ...carsStateRef.current,
+          [model]: { ...carsStateRef.current[model], interior },
+        })
+      },
+    },
+    Exterior: {
+      value: '#9a9898',
+      onChange: (exterior: string) => {
+        const model = levaStore.get('Select') as Model
+        setCarsState({
+          ...carsStateRef.current,
+          [model]: { ...carsStateRef.current[model], exterior },
+        })
+      },
+    },
     Rotation: false,
-    "Reset color": button(() => {
-      const model = levaStore.get("Select") as Model
+    'Reset color': button(() => {
+      const model = levaStore.get('Select') as Model
       setLeva({
         Exterior: cars[model].exterior,
         Interior: cars[model].interior,
@@ -162,15 +186,24 @@ export default function App() {
 
   const { progress } = useProgress()
 
-  const captureRef = useRef<{ gl?: any; scene?: any; camera?: any; invalidate?: () => void; }>({})
+  const captureRef = useRef<{ gl?: any; scene?: any; camera?: any; invalidate?: () => void }>({})
   const waitFrames = (n = 2) =>
     new Promise<void>((resolve) => {
-      const step = (k: number) => { k <= 0 ? resolve() : requestAnimationFrame(() => step(k - 1)) }
+      const step = (k: number) => {
+        k <= 0 ? resolve() : requestAnimationFrame(() => step(k - 1))
+      }
       step(n)
     })
 
   // Draw rounded rectangle helper
-  const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+  const roundRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number
+  ) => {
     const rr = Math.min(r, w / 2, h / 2)
     ctx.beginPath()
     ctx.moveTo(x + rr, y)
@@ -214,9 +247,10 @@ export default function App() {
     ctx.drawImage(srcCanvas, 0, 0, width, height)
 
     // Collect details
-    const model = (levaStore.get('Select') as Model) || (models as unknown as Model)
-    const exterior = carsStateRef.current[model].exterior
-    const interior = carsStateRef.current[model].interior
+    // Yahan pehle models ko Model type me fallback diya gaya tha; safer: agar levaStore empty ho to default pe jao.
+    const selectedModel = (levaStore.get('Select') as Model) ?? 'ARCHON'
+    const exterior = carsStateRef.current[selectedModel].exterior
+    const interior = carsStateRef.current[selectedModel].interior
     const timestamp = new Date().toLocaleString()
 
     // 2) Draw info panel at bottom
@@ -235,7 +269,7 @@ export default function App() {
     // Title: Model
     ctx.fillStyle = '#ffffff'
     ctx.font = `600 ${titleSize}px Inter, Arial, sans-serif`
-    ctx.fillText(`${model}`, pad, panelY + pad)
+    ctx.fillText(`${selectedModel}`, pad, panelY + pad)
 
     // Labels
     ctx.font = `500 ${bodySize}px Inter, Arial, sans-serif`
@@ -254,7 +288,8 @@ export default function App() {
     ctx.fill()
 
     // Interior
-    const interiorX = pad + sw + 10 + ctx.measureText(`Exterior: ${exterior}`).width + gap + sw + 10
+    const interiorX =
+      pad + sw + 10 + ctx.measureText(`Exterior: ${exterior}`).width + gap + sw + 10
     ctx.fillStyle = '#ffffff'
     ctx.fillText(`Interior: ${interior}`, interiorX, line2Y)
     ctx.fillStyle = interior
@@ -276,7 +311,7 @@ export default function App() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      const filename = `${(model as string) || 'car'}-${Date.now()}.png`
+      const filename = `${(selectedModel as string) || 'car'}-${Date.now()}.png`
       a.download = filename
       document.body.appendChild(a)
       a.click()
@@ -299,13 +334,13 @@ export default function App() {
           <CaptureBridge onReady={(api) => { captureRef.current = api }} />
           <Suspense fallback={null}>
             {models.map((name) => {
-              const Model = cars[name].Model
+              const ModelComp = cars[name].Model
               return (
-                <Model
+                <ModelComp
                   key={name}
                   exterior={carsState[name].exterior}
                   interior={carsState[name].interior}
-                  visible={levaStore.get("Select") === name}
+                  visible={levaStore.get('Select') === name}
                 />
               )
             })}

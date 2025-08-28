@@ -18,5 +18,5 @@ export interface ModelProps {
 }
 
 
-export const models = ["ARCHON"] as const;
+export const models = [""] as const;
 export type Model = typeof models[number];
